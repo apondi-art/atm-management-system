@@ -18,7 +18,7 @@ int main() {
         if(choice == 0){
             break;
         }
-        checkCases(choice);
+        checkCases(db,choice);
        
     }
     sqlite3_close(db);
