@@ -19,6 +19,7 @@ int main() {
             break;
         }
         checkCases(db,choice);
+        PrintBankOptions();
        
     }
     sqlite3_close(db);
