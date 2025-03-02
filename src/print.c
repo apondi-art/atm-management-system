@@ -11,6 +11,8 @@ void printOption(){
 }
 
 
+
+
 void PrintBankOptions(){
     clearScreen();
     printf("=======ATM=======\n\n");
@@ -22,7 +24,7 @@ void PrintBankOptions(){
     printf("[5]- Make Transaction\n\n");
     printf("[6]- Remove Existing\n\n");
     printf("[7]- Transfer Ownership\n\n");
-    printf("[3]- exit\n\n");
+    printf("[8]- exit\n\n");
 
 }
 
