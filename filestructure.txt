@@ -1,7 +1,6 @@
 |-- Makefile
 |-- atm
 |-- atm.db
-|-- data
 |-- sqlite
     |-- sqlite3.c
     |-- sqlite3.h
