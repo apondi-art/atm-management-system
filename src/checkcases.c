@@ -81,8 +81,10 @@ void CaseBankOption(sqlite3 *db, int choice, int User_Id)
         printf("Update Account\n");
         break;
     case 3:
-        printf("Check  Account Information Here\n");
-        break;
+    printf("Enter accoun numbre : ");
+    scanf("%19s",accounN);
+    Check_Account(db,accounN);
+      break;
     case 4:
         List_All_UserAccount(db, User_Id);
         break;
