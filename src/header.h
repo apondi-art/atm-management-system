@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <sqlite3.h> // Fixed typo: "sqlite3.h" should not have quotes
 #include <string.h>  // ✅ Include this for strcmp()
+#include <unistd.h> 
 void clearScreen();
 sqlite3* OpenDatabase(const char *filename);
 void CreateTables(sqlite3 *db);
@@ -23,6 +24,16 @@ void List_All_UserAccount(sqlite3 *db, int User_Id);
 void Update_Phone(sqlite3 *db, char *Phone, const char *Account_number);
 void Update(sqlite3 *db);
 void Update_Country(sqlite3 *db, char *country ,const char *Account_number);
+const char* getDay(const char *creation_date);
+double Account_Rate(const char *Account_Type, int *years);
+double get_monthly_interest(double balance, double rate) ;
+double get_fixed_interest(double balance, double rate, int years);
+void GetAll_interest(double balance, const char *creation_date, const char *Account_Type);
+void Check_Account(sqlite3 *db, const char *Account_number);
+void delay(int number_of_seconds);
+// void Account(const char *Account) ;
+
+
 
 
 #endif // HEADER_H
