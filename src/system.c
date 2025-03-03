@@ -51,7 +51,7 @@ void CreateTables(sqlite3 *db)
     }
     else
     {
-        printf("Users table created successfully!\n");
+        printf("Users tables successfully!\n");
     }
 
     // Execute commands for creating accounts
@@ -63,9 +63,11 @@ void CreateTables(sqlite3 *db)
     }
     else
     {
-        printf("Account table created succesfully");
+        printf("Account table created succesfully\n");
+        sleep(2);
     }
 }
+
 
 void Register(sqlite3 *db, const char *name, const char *password)
 {
@@ -301,4 +303,116 @@ void Update_Country(sqlite3 *db,  char *country, const char *Account_number)
     }
 
     sqlite3_finalize(stmt);
+}
+
+
+// Function to extract the day from a date string
+const char* getDay(const char *creation_date) {
+    static char copy[20];  
+    strncpy(copy, creation_date, sizeof(copy) - 1);
+    copy[sizeof(copy) - 1] = '\0';  
+
+    return strtok(copy, "/");  
+}
+
+// Function to return the interest rate and duration for fixed accounts
+double Account_Rate(const char *Account_Type, int *years) {
+    if (strcmp(Account_Type, "Current") == 0) return 0.0;
+    if (strcmp(Account_Type, "Savings") == 0) return 7.0;
+    if (strcmp(Account_Type, "Fixed01") == 0) { *years = 1; return 4.0; }
+    if (strcmp(Account_Type, "Fixed02") == 0) { *years = 2; return 5.0; }
+    if (strcmp(Account_Type, "Fixed03") == 0) { *years = 3; return 8.0; }
+    return -1.0;
+}
+
+// Function to calculate monthly interest for savings
+double get_monthly_interest(double balance, double rate) {
+    return (balance * rate) / (12*100);
+}
+
+// Function to calculate total interest for fixed accounts
+double get_fixed_interest(double balance, double rate, int years) {
+    return (balance * rate * years) / 100;
+}
+
+// Function to display interest details
+void GetAll_interest(double balance, const char *creation_date, const char *Account_Type) {
+    int years = 0;
+    double rate = Account_Rate(Account_Type, &years);  // Ensure this function is correctly defined
+
+    if (rate == 0.0) {
+        printf("You will not get interests because the account is of type current.\n");
+        return;
+    }
+
+    // Ensure getDay is valid and returns a meaningful value
+    const char *day = getDay(creation_date);
+    if (!day) {
+        printf("Error: Could not extract the day from the creation date.\n");
+        return;
+    }
+
+    int day_num = atoi(day);
+    if (day_num <= 0 || day_num > 31) {
+        printf("Error: Invalid day extracted from creation date.\n");
+        return;
+    }
+    double interest = 0.0;
+
+    if (years == 0) { 
+        interest = get_monthly_interest(balance, rate);
+        printf("You will get $%.2f as interest on day %d of every month.\n", interest, day_num);
+    } else {  
+        interest = get_fixed_interest(balance, rate, years);
+        printf("For %s, you will get $%.2f as interest after %d years.\n", Account_Type, interest, years);
+    }
+}
+
+
+//getting account information
+
+void Check_Account(sqlite3 *db, const char *Account_number) {
+    const char *sql = "SELECT account_type, country, phone, balance, creation_date "
+                      "FROM accounts WHERE account_number = ?;";
+
+    sqlite3_stmt *stmt;
+    int rc = sqlite3_prepare_v2(db, sql, -1, &stmt, 0);
+    if (rc != SQLITE_OK) {
+        printf("Error preparing statement: %s\n", sqlite3_errmsg(db));
+        return;
+    }
+
+    // Bind the account number
+    sqlite3_bind_text(stmt, 1, Account_number, -1, SQLITE_STATIC);
+
+    // Execute the query
+    rc = sqlite3_step(stmt);
+    if (rc == SQLITE_ROW) {  // Row found
+        const unsigned char *account_type = sqlite3_column_text(stmt, 0);
+        const unsigned char *country = sqlite3_column_text(stmt, 1);
+        const unsigned char *phone = sqlite3_column_text(stmt, 2);
+        double balance = sqlite3_column_double(stmt, 3);
+        const unsigned char *creation_date = sqlite3_column_text(stmt, 4);
+
+        printf("\nAccount Details:\n");
+        printf("Account Number: %s\n", Account_number ? Account_number : "N/A");
+        printf("Type: %s\n", account_type ? (char *)account_type : "N/A");
+        printf("Country: %s\n", country ? (char *)country : "N/A");
+        printf("Phone: %s\n", phone ? (char *)phone : "N/A");
+        printf("Balance: %.2f\n", balance);
+        printf("Created on: %s\n", creation_date ? (char *)creation_date : "N/A");
+
+      
+        GetAll_interest(balance, creation_date, account_type);
+    } else {
+        printf("Account not found.\n");
+    }
+
+    // Finalize the statement
+    sqlite3_finalize(stmt);
+
+    // Wait for user input before returning
+    printf("\nPress Enter to continue...");
+    while (getchar() != '\n'); // Clear the input buffer
+    getchar(); // Wait for Enter
 }
