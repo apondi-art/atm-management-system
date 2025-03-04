@@ -27,7 +27,6 @@ int checkCases(sqlite3 *db, int choice)
     }
 }
 
-
 void Print_Register(char *name, char *password)
 {
     clearScreen();
@@ -54,9 +53,11 @@ void Print_Login(char *name, char *password)
 void CaseBankOption(sqlite3 *db, int choice, int User_Id)
 {
     char accounN[20]; // Increased size for safety
+    char NewOwner[20]; 
     char accountT[20];
     char country[50];
     char phone[20];
+    int newid;
     double balance = 0.0; // Use double for accurate transactions
     char creationD[20];
 
@@ -81,20 +82,33 @@ void CaseBankOption(sqlite3 *db, int choice, int User_Id)
         printf("Update Account\n");
         break;
     case 3:
-    printf("Enter accoun numbre : ");
-    scanf("%19s",accounN);
-    Check_Account(db,accounN);
-      break;
+        printf("Enter account number : ");
+        scanf("%19s", accounN);
+        Check_Account(db, accounN);
+        break;
     case 4:
         List_All_UserAccount(db, User_Id);
         break;
     case 5:
+        Transaction(db);
         printf(" make transaction\n");
+        sleep(1);
         break;
     case 6:
+        printf("Enter Account Number: ");
+        scanf("%19s", accounN);
+        Remove_Account(db, accounN);
         printf("remove existing account\n");
         break;
     case 7:
+    printf("Enter Account number: ");
+    scanf("%19s",accounN);
+    printf("Enter New Owner: ");
+    scanf("%19s",NewOwner);
+    printf("Enter new owner id: ");
+    scanf("%19s",accounN);
+    transfer_ownership(db, accounN, const char *New_owner, const char *New_owner_id)
+
         printf(" Transfer ownership Here\n");
         break;
     case 8:
@@ -105,8 +119,6 @@ void CaseBankOption(sqlite3 *db, int choice, int User_Id)
         printf(" Select between 1-8 only\n");
     }
 }
-
-
 
 // Function to display an error and let the user choose to retry or exit
 int handleLoginError()
@@ -233,7 +245,8 @@ void Update(sqlite3 *db)
     {
         if (scanf("%d", &choice) != 1) //  Fixed &choice
         {
-            while (getchar() != '\n'); // Clear input buffer
+            while (getchar() != '\n')
+                ; // Clear input buffer
             printf("Invalid input. Please enter 1 or 2: ");
             continue;
         }
@@ -250,6 +263,54 @@ void Update(sqlite3 *db)
             printf("\nEnter new Country: ");
             scanf("%49s", country);
             Update_Country(db, country, account_number);
+            break;
+
+        default:
+            printf(" Invalid choice. Select either 1 or 2: ");
+            continue;
+        }
+        break; //  Exit loop after valid input
+    }
+}
+
+void Transaction(sqlite3 *db)
+{
+    char account_number[20]; //  Must be a mutable array
+    int choice;
+    double Amount;
+
+    //  Get the account number
+    printf("\nWhat is the Account number:  ");
+    scanf("%19s", account_number);
+
+    //  Display options
+    printf("\n do you want to ?\n");
+    printf("1. Witndraw\n");
+    printf("2. Deposit\n");
+    printf("Enter choice: ");
+
+    while (1)
+    {
+        if (scanf("%d", &choice) != 1) //  Fixed &choice
+        {
+            while (getchar() != '\n')
+                ; // Clear input buffer
+            printf("Invalid input. Please enter 1 or 2: ");
+            continue;
+        }
+
+        switch (choice)
+        {
+        case 1:
+            printf("\nEnter amount: ");
+            scanf("%lf", &Amount);
+            transaction_withdrawal(db, Amount, account_number);
+            break;
+
+        case 2:
+            printf("\nEnter amount: ");
+            scanf("%lf", &Amount);
+            transaction_deposit(db, Amount, account_number);
             break;
 
         default:
