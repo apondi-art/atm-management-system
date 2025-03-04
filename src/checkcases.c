@@ -1,7 +1,7 @@
 #include "header.h"
 int checkCases(sqlite3 *db, int choice)
 {
-    char name[100];     // Allocate memory for name
+    char name[100];     // Allocate memory for name to prevent overflow
     char password[100]; // Allocate memory for password
 
     switch (choice)
@@ -30,11 +30,13 @@ int checkCases(sqlite3 *db, int choice)
 void Print_Register(char *name, char *password)
 {
     clearScreen();
-    printf("Bank Management system\n");
-    printf("Enter Your Name :");
-    scanf("%99s", name);
     printf("\n\n");
-    printf("Enter the password to Register:  ");
+    print_centered("Bank Management system");
+    printf("\n\n");
+    printf("Enter Your Name : ");
+    scanf("%99s", name);
+    printf("\n");
+    printf("Enter the password: ");
     scanf("%99s", password);
     printf("\n\n");
 }
@@ -42,10 +44,12 @@ void Print_Register(char *name, char *password)
 void Print_Login(char *name, char *password)
 {
     clearScreen();
-    printf("Bank Management system\n");
+    printf("\n\n");
+    print_centered("Bank Management system");
+    printf("\n\n");
     printf("Enter Username :");
     scanf("%99s", name);
-    printf("\n\n\n");
+    printf("\n\n");
     printf("Enter Password:  ");
     scanf("%99s", password);
 }
@@ -53,11 +57,11 @@ void Print_Login(char *name, char *password)
 void CaseBankOption(sqlite3 *db, int choice, int User_Id)
 {
     char accounN[20]; // Increased size for safety
-    char NewOwner[20]; 
+    char NewOwner[20];
     char accountT[20];
     char country[50];
     char phone[20];
-    int newid;
+    int newid = 0;
     double balance = 0.0; // Use double for accurate transactions
     char creationD[20];
 
@@ -68,10 +72,12 @@ void CaseBankOption(sqlite3 *db, int choice, int User_Id)
         BankRecords(accounN, accountT, country, phone, &balance, creationD);
         if (CreateAccount(db, User_Id, accounN, accountT, country, phone, balance, creationD) == 0)
         {
-            printf("\nNew Record Added Successfully!\n");
+            printf("\n\n");
+            print_centered("New Record Added Successfully!");
         }
         else
         {
+            
             printf("\nFailed to Create Account!\n");
         }
 
@@ -84,15 +90,13 @@ void CaseBankOption(sqlite3 *db, int choice, int User_Id)
     case 3:
         printf("Enter account number : ");
         scanf("%19s", accounN);
-        Check_Account(db, accounN);
+        Check_Account(db, User_Id, accounN);
         break;
     case 4:
         List_All_UserAccount(db, User_Id);
         break;
     case 5:
         Transaction(db);
-        printf(" make transaction\n");
-        sleep(1);
         break;
     case 6:
         printf("Enter Account Number: ");
@@ -101,14 +105,12 @@ void CaseBankOption(sqlite3 *db, int choice, int User_Id)
         printf("remove existing account\n");
         break;
     case 7:
-    printf("Enter Account number: ");
-    scanf("%19s",accounN);
-    printf("Enter New Owner: ");
-    scanf("%19s",NewOwner);
-    printf("Enter new owner id: ");
-    scanf("%19s",accounN);
-    transfer_ownership(db, accounN, const char *New_owner, const char *New_owner_id)
-
+        printf("Enter Account number: ");
+        scanf("%19s", accounN);
+        printf("Enter New Owner: ");
+        scanf("%19s", NewOwner);
+        newid = get_id(db, NewOwner);
+        transfer_ownership(db, accounN, newid);
         printf(" Transfer ownership Here\n");
         break;
     case 8:
@@ -128,7 +130,7 @@ int handleLoginError()
 
     while (1)
     { // Keep looping until valid input is received
-        printf("\nUsername or password incorrect. What would you like to do?\n");
+        printf("\nUsername or password incorrect\n");
         printf("1. Retry Login\n");
         printf("2. Exit\n");
         printf("Enter your choice: ");
@@ -159,22 +161,24 @@ int handleLoginError()
 
 void BankRecords(char *Account_Number, char *Account_Type, char *Country, char *Phone, double *Balance, char *Creation_date)
 {
-    printf("===== New Record Entry =====\n");
+    printf("\n\n");
+    print_centered("===== New Record Entry =====");
+    printf("\n\n");
 
     printf("Enter today's date (DD/MM/YYYY): ");
-    scanf("%19s", Creation_date); // Prevents overflow
+    scanf("%19s", Creation_date); 
 
     printf("Enter the account number: ");
-    scanf("%19s", Account_Number); //  Prevents overflow
+    scanf("%19s", Account_Number);  
 
     printf("Enter the country: ");
-    scanf("%49s", Country); // Prevents overflow
+    scanf("%49s", Country); // 
 
     printf("Enter the phone number: ");
-    scanf("%19s", Phone); // Prevents overflow
+    scanf("%19s", Phone); 
 
-    printf("Enter amount to deposit: ");
-    scanf("%lf", Balance); // Corrected for double
+    printf("Enter amount to deposit: $");
+    scanf("%lf", Balance); 
 
     // Display Account Type Options
     int account_choice;
@@ -221,7 +225,7 @@ void BankRecords(char *Account_Number, char *Account_Type, char *Country, char *
         break; // Exit loop if valid choice is selected
     }
 
-    printf("\n New Record Added Successfully!\n");
+    printf("\nNew Record Added Successfully!\n");
 }
 
 void Update(sqlite3 *db)
