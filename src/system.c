@@ -68,7 +68,6 @@ void CreateTables(sqlite3 *db)
     }
 }
 
-
 void Register(sqlite3 *db, const char *name, const char *password)
 {
     if (!db)
@@ -249,7 +248,7 @@ void List_All_UserAccount(sqlite3 *db, int User_Id)
     getchar(); // Wait for Enter
 }
 
-void Update_Phone(sqlite3 *db,  char *Phone, const char *Account_number)
+void Update_Phone(sqlite3 *db, char *Phone, const char *Account_number)
 {
     const char *sql = "UPDATE accounts SET phone = ? WHERE account_number = ?;";
     sqlite3_stmt *stmt;
@@ -277,7 +276,7 @@ void Update_Phone(sqlite3 *db,  char *Phone, const char *Account_number)
     sqlite3_finalize(stmt);
 }
 
-void Update_Country(sqlite3 *db,  char *country, const char *Account_number)
+void Update_Country(sqlite3 *db, char *country, const char *Account_number)
 {
     const char *sql = "UPDATE accounts SET country = ? WHERE account_number = ?;";
     sqlite3_stmt *stmt;
@@ -305,79 +304,104 @@ void Update_Country(sqlite3 *db,  char *country, const char *Account_number)
     sqlite3_finalize(stmt);
 }
 
-
 // Function to extract the day from a date string
-const char* getDay(const char *creation_date) {
-    static char copy[20];  
+const char *getDay(const char *creation_date)
+{
+    static char copy[20];
     strncpy(copy, creation_date, sizeof(copy) - 1);
-    copy[sizeof(copy) - 1] = '\0';  
+    copy[sizeof(copy) - 1] = '\0';
 
-    return strtok(copy, "/");  
+    return strtok(copy, "/");
 }
 
 // Function to return the interest rate and duration for fixed accounts
-double Account_Rate(const char *Account_Type, int *years) {
-    if (strcmp(Account_Type, "Current") == 0) return 0.0;
-    if (strcmp(Account_Type, "Savings") == 0) return 7.0;
-    if (strcmp(Account_Type, "Fixed01") == 0) { *years = 1; return 4.0; }
-    if (strcmp(Account_Type, "Fixed02") == 0) { *years = 2; return 5.0; }
-    if (strcmp(Account_Type, "Fixed03") == 0) { *years = 3; return 8.0; }
+double Account_Rate(const char *Account_Type, int *years)
+{
+    if (strcmp(Account_Type, "Current") == 0)
+        return 0.0;
+    if (strcmp(Account_Type, "Savings") == 0)
+        return 7.0;
+    if (strcmp(Account_Type, "Fixed01") == 0)
+    {
+        *years = 1;
+        return 4.0;
+    }
+    if (strcmp(Account_Type, "Fixed02") == 0)
+    {
+        *years = 2;
+        return 5.0;
+    }
+    if (strcmp(Account_Type, "Fixed03") == 0)
+    {
+        *years = 3;
+        return 8.0;
+    }
     return -1.0;
 }
 
 // Function to calculate monthly interest for savings
-double get_monthly_interest(double balance, double rate) {
-    return (balance * rate) / (12*100);
+double get_monthly_interest(double balance, double rate)
+{
+    return (balance * rate) / (12 * 100);
 }
 
 // Function to calculate total interest for fixed accounts
-double get_fixed_interest(double balance, double rate, int years) {
+double get_fixed_interest(double balance, double rate, int years)
+{
     return (balance * rate * years) / 100;
 }
 
 // Function to display interest details
-void GetAll_interest(double balance, const char *creation_date, const char *Account_Type) {
+void GetAll_interest(double balance, const char *creation_date, const char *Account_Type)
+{
     int years = 0;
-    double rate = Account_Rate(Account_Type, &years);  // Ensure this function is correctly defined
+    double rate = Account_Rate(Account_Type, &years); // Ensure this function is correctly defined
 
-    if (rate == 0.0) {
+    if (rate == 0.0)
+    {
         printf("You will not get interests because the account is of type current.\n");
         return;
     }
 
     // Ensure getDay is valid and returns a meaningful value
     const char *day = getDay(creation_date);
-    if (!day) {
+    if (!day)
+    {
         printf("Error: Could not extract the day from the creation date.\n");
         return;
     }
 
     int day_num = atoi(day);
-    if (day_num <= 0 || day_num > 31) {
+    if (day_num <= 0 || day_num > 31)
+    {
         printf("Error: Invalid day extracted from creation date.\n");
         return;
     }
     double interest = 0.0;
 
-    if (years == 0) { 
+    if (years == 0)
+    {
         interest = get_monthly_interest(balance, rate);
         printf("You will get $%.2f as interest on day %d of every month.\n", interest, day_num);
-    } else {  
+    }
+    else
+    {
         interest = get_fixed_interest(balance, rate, years);
         printf("For %s, you will get $%.2f as interest after %d years.\n", Account_Type, interest, years);
     }
 }
 
+// getting account information
 
-//getting account information
-
-void Check_Account(sqlite3 *db, const char *Account_number) {
+void Check_Account(sqlite3 *db, const char *Account_number)
+{
     const char *sql = "SELECT account_type, country, phone, balance, creation_date "
                       "FROM accounts WHERE account_number = ?;";
 
     sqlite3_stmt *stmt;
     int rc = sqlite3_prepare_v2(db, sql, -1, &stmt, 0);
-    if (rc != SQLITE_OK) {
+    if (rc != SQLITE_OK)
+    {
         printf("Error preparing statement: %s\n", sqlite3_errmsg(db));
         return;
     }
@@ -387,7 +411,8 @@ void Check_Account(sqlite3 *db, const char *Account_number) {
 
     // Execute the query
     rc = sqlite3_step(stmt);
-    if (rc == SQLITE_ROW) {  // Row found
+    if (rc == SQLITE_ROW)
+    { // Row found
         const unsigned char *account_type = sqlite3_column_text(stmt, 0);
         const unsigned char *country = sqlite3_column_text(stmt, 1);
         const unsigned char *phone = sqlite3_column_text(stmt, 2);
@@ -402,10 +427,12 @@ void Check_Account(sqlite3 *db, const char *Account_number) {
         printf("Balance: %.2f\n", balance);
         printf("Created on: %s\n", creation_date ? (char *)creation_date : "N/A");
 
-      
         GetAll_interest(balance, creation_date, account_type);
-    } else {
+    }
+    else
+    {
         printf("Account not found.\n");
+        sleep(2);
     }
 
     // Finalize the statement
@@ -413,6 +440,270 @@ void Check_Account(sqlite3 *db, const char *Account_number) {
 
     // Wait for user input before returning
     printf("\nPress Enter to continue...");
-    while (getchar() != '\n'); // Clear the input buffer
+    while (getchar() != '\n')
+        ;      // Clear the input buffer
     getchar(); // Wait for Enter
 }
+
+int Check_Datatype(const unsigned char *datatype)
+{
+    if (datatype == NULL) // Handle NULL values
+    {
+        printf("Error: Account type is NULL\n");
+        return 1; // Treat as a fixed account (safe default)
+    }
+
+    printf("Account Type: %s\n", datatype); // Debugging print statement
+
+    return (strcmp((const char *)datatype, "Savings") == 0 || strcmp((const char *)datatype, "Current") == 0) ? 0 : 1;
+}
+
+
+void transaction_deposit(sqlite3 *db, double Amount, const char *Account_number)
+{
+    const char *sql = "SELECT balance, account_type FROM accounts WHERE account_number = ?;";
+    sqlite3_stmt *stmt;
+
+    if (sqlite3_prepare_v2(db, sql, -1, &stmt, 0) != SQLITE_OK)
+    {
+        printf("Error preparing statement: %s\n", sqlite3_errmsg(db));
+        return;
+    }
+
+    sqlite3_bind_text(stmt, 1, Account_number, -1, SQLITE_STATIC);
+
+    double balance = 0.0;
+    const unsigned char *account_type = NULL;
+
+    if (sqlite3_step(stmt) == SQLITE_ROW)
+    {
+        balance = sqlite3_column_double(stmt, 0);
+        account_type = sqlite3_column_text(stmt, 1);
+    }
+    else
+    {
+        printf("Account not found.\n");
+        sleep(2);
+        sqlite3_finalize(stmt);
+        return;
+    }
+
+    // Compare directly without copying
+    if (Check_Datatype(account_type) != 0)
+    {
+        printf("Transaction not allowed on fixed account.\n");
+        sleep(2);
+        sqlite3_finalize(stmt);
+        return;
+    }
+
+    sqlite3_finalize(stmt); // Now it's safe to close
+
+    // Perform deposit
+    sql = "UPDATE accounts SET balance = balance + ? WHERE account_number = ?;";
+    if (sqlite3_prepare_v2(db, sql, -1, &stmt, 0) != SQLITE_OK)
+    {
+        printf("Error preparing update statement: %s\n", sqlite3_errmsg(db));
+        return;
+    }
+
+    sqlite3_bind_double(stmt, 1, Amount);
+    sqlite3_bind_text(stmt, 2, Account_number, -1, SQLITE_STATIC);
+
+    if (sqlite3_step(stmt) == SQLITE_DONE)
+    {
+        printf("Deposit successful. New balance: %.2lf\n", balance + Amount);
+    }
+    else
+    {
+        printf("Deposit failed: %s\n", sqlite3_errmsg(db));
+    }
+
+    sqlite3_finalize(stmt);
+
+    printf("\nPress Enter to continue...");
+    while (getchar() != '\n');
+    getchar();
+}
+
+void transaction_withdrawal(sqlite3 *db, double Amount, const char *Account_number)
+{
+    const char *sql = "SELECT balance, account_type FROM accounts WHERE account_number = ?;";
+    sqlite3_stmt *stmt;
+    int rc = sqlite3_prepare_v2(db, sql, -1, &stmt, 0);
+
+    if (rc != SQLITE_OK)
+    {
+        printf("Error preparing statement: %s\n", sqlite3_errmsg(db));
+        return;
+    }
+
+    sqlite3_bind_text(stmt, 1, Account_number, -1, SQLITE_STATIC);
+
+    double balance = 0.0;
+    const char *account_type = NULL; // Use char * instead of unsigned char *
+
+    rc = sqlite3_step(stmt);
+    if (rc == SQLITE_ROW)
+    {
+        balance = sqlite3_column_double(stmt, 0);
+        account_type = (const char *)sqlite3_column_text(stmt, 1);
+
+        if (account_type == NULL)  // Ensure account_type is not NULL
+        {
+            printf("Error: Account type is NULL.\n");
+            sleep(2);
+            sqlite3_finalize(stmt);
+            return;
+        }
+
+        // Debugging print to check retrieved value
+        printf("Debug: Retrieved account type = [%s]\n", account_type);
+
+        // Check if withdrawals are allowed
+        if (Check_Datatype((const unsigned char *)account_type) != 0)
+        {
+            printf("Transaction not allowed on fixed account.\n");
+            sleep(2);
+            sqlite3_finalize(stmt);
+            return;
+        }
+    }
+    else
+    {
+        printf("Account not found.\n");
+        sleep(2);
+        sqlite3_finalize(stmt);
+        return;
+    }
+
+    sqlite3_finalize(stmt); // Finalize after all checks
+
+    // Check if balance is sufficient
+    if (balance < Amount)
+    {
+        printf("Insufficient balance! Your balance is: %.2lf, but you tried to withdraw: %.2lf\n", balance, Amount);
+        sleep(2);
+        return;
+    }
+
+    // Proceed with withdrawal
+    sql = "UPDATE accounts SET balance = balance - ? WHERE account_number = ?;";
+    rc = sqlite3_prepare_v2(db, sql, -1, &stmt, 0);
+    if (rc != SQLITE_OK)
+    {
+        printf("Error preparing update statement: %s\n", sqlite3_errmsg(db));
+        return;
+    }
+
+    sqlite3_bind_double(stmt, 1, Amount);
+    sqlite3_bind_text(stmt, 2, Account_number, -1, SQLITE_STATIC);
+
+    if (sqlite3_step(stmt) == SQLITE_DONE)
+    {
+        printf("Withdrawal successful. New balance: %.2lf\n", balance - Amount);
+    }
+    else
+    {
+        printf("Withdrawal failed: %s\n", sqlite3_errmsg(db));
+    }
+
+    sqlite3_finalize(stmt);
+
+    // Wait for user input before returning
+    printf("\nPress Enter to continue...");
+    while (getchar() != '\n');
+    getchar();
+}
+
+
+
+void Remove_Account(sqlite3 *db, const char *Account_number)
+{
+    const char *sql = "DELETE FROM accounts WHERE account_number = ?;";
+    sqlite3_stmt *stmt;
+
+    // Prepare the DELETE statement
+    if (sqlite3_prepare_v2(db, sql, -1, &stmt, 0) != SQLITE_OK)
+    {
+        printf("Error preparing delete statement: %s\n", sqlite3_errmsg(db));
+        return;
+    }
+
+    // Bind the account number to the statement
+    sqlite3_bind_text(stmt, 1, Account_number, -1, SQLITE_STATIC);
+
+    // Execute the statement
+    if (sqlite3_step(stmt) == SQLITE_DONE)
+    {
+        if (sqlite3_changes(db) > 0)
+        {
+            printf("Account with number %s has been successfully removed.\n", Account_number);
+        }
+        else
+        {
+            printf("No account found with number %s.\n", Account_number);
+        }
+    }
+    else
+    {
+        printf("Failed to remove account: %s\n", sqlite3_errmsg(db));
+    }
+
+    // Finalize the statement
+    sqlite3_finalize(stmt);
+
+    // Wait for user input before returning
+    printf("\nPress Enter to continue...");
+    while (getchar() != '\n');
+    getchar();
+}
+
+
+void transfer_ownership(sqlite3 *db, const char *Account_number, const char *New_owner, const char *New_owner_id)
+{
+    const char *sql = "UPDATE accounts SET owner_name = ?, owner_id = ? WHERE account_number = ?;";
+    sqlite3_stmt *stmt;
+
+    // Prepare the UPDATE statement
+    if (sqlite3_prepare_v2(db, sql, -1, &stmt, 0) != SQLITE_OK)
+    {
+        printf("Error preparing update statement: %s\n", sqlite3_errmsg(db));
+        return;
+    }
+
+    // Bind new owner's name
+    sqlite3_bind_text(stmt, 1, New_owner, -1, SQLITE_STATIC);
+    
+    // Bind new owner's ID (optional, but should be valid)
+    sqlite3_bind_text(stmt, 2, New_owner_id, -1, SQLITE_STATIC);
+
+    // Bind the account number
+    sqlite3_bind_text(stmt, 3, Account_number, -1, SQLITE_STATIC);
+
+    // Execute the statement
+    if (sqlite3_step(stmt) == SQLITE_DONE)
+    {
+        if (sqlite3_changes(db) > 0)
+        {
+            printf("Ownership of account %s has been successfully transferred to %s.\n", Account_number, New_owner);
+        }
+        else
+        {
+            printf("No account found with number %s.\n", Account_number);
+        }
+    }
+    else
+    {
+        printf("Ownership transfer failed: %s\n", sqlite3_errmsg(db));
+    }
+
+    // Finalize statement
+    sqlite3_finalize(stmt);
+
+    // Wait for user input before returning
+    printf("\nPress Enter to continue...");
+    while (getchar() != '\n');
+    getchar();
+}
+
