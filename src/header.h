@@ -30,8 +30,14 @@ double get_monthly_interest(double balance, double rate) ;
 double get_fixed_interest(double balance, double rate, int years);
 void GetAll_interest(double balance, const char *creation_date, const char *Account_Type);
 void Check_Account(sqlite3 *db, const char *Account_number);
-void delay(int number_of_seconds);
-// void Account(const char *Account) ;
+void Transaction(sqlite3 *db);
+int Check_Datatype(const unsigned char *datatype);
+void transaction_deposit(sqlite3 *db, double Amount, const char *Account_number);
+void transaction_withdrawal(sqlite3 *db, double Amount, const char *Account_number);
+void Remove_Account(sqlite3 *db, const char *Account_number);
+void transfer_ownership(sqlite3 *db, const char *Account_number, const char *New_owner, const char *New_owner_id);
+
+
 
 
 
