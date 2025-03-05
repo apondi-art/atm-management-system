@@ -64,7 +64,8 @@ void CreateTables(sqlite3 *db)
     else
     {
         printf("Account table created succesfully\n");
-        sleep(1);
+        printf("\n Press to continue......\n");
+        getchar();
     }
 }
 
@@ -90,17 +91,22 @@ void Register(sqlite3 *db, const char *name, const char *password)
 
     if (sqlite3_step(stmt) != SQLITE_DONE)
     {
-        fprintf(stderr, "User Registration unsuccessfull username exist: %s\n", sqlite3_errmsg(db));
-        sleep(1);
+        printf("User Registration unsuccessfull username exist:\n");
+        printf("\nPress Enter to continue...");
+        while (getchar() != '\n')
+            ;
+        getchar();
     }
     else
     {
-        printf("User registration  successfully!\n");
-        sleep(1);
+        printf("Registration  successfull!\n");
+        printf("\nPress Enter to continue...");
+        while (getchar() != '\n')
+            ;
+        getchar();
     }
 
     sqlite3_finalize(stmt);
-   
 }
 
 int Login(sqlite3 *db, const char *name, const char *password)
@@ -138,6 +144,10 @@ int Login(sqlite3 *db, const char *name, const char *password)
             fflush(stdout);
             sleep(1);
             sqlite3_finalize(stmt);
+            printf("\nPress Enter to continue...");
+            while (getchar() != '\n')
+                ;
+            getchar();
             return user_id; // Return actual user_id
         }
         else
@@ -145,6 +155,10 @@ int Login(sqlite3 *db, const char *name, const char *password)
             printf("Incorrect password!\n");
             fflush(stdout);
             sqlite3_finalize(stmt);
+            printf("\nPress Enter to continue...");
+            while (getchar() != '\n')
+                ;
+            getchar();
             return 0; // Return failure
         }
     }
@@ -155,7 +169,10 @@ int Login(sqlite3 *db, const char *name, const char *password)
         sqlite3_finalize(stmt);
         return 0; // Return failure
     }
-    sleep(1);
+    printf("\nPress Enter to continue...");
+    while (getchar() != '\n')
+        ;
+    getchar();
 }
 
 int CreateAccount(sqlite3 *db, int user_ID, const char *Account_Number, const char *Account_Type, char *Country, char *Phone, double Balance, const char *Creation_date)
@@ -195,13 +212,10 @@ int CreateAccount(sqlite3 *db, int user_ID, const char *Account_Number, const ch
     }
     clearScreen();
     printf("Account created successfully");
-
     sqlite3_finalize(stmt);
     printf("\nPress Enter to continue...");
     getchar(); // Consume any remaining newline
     getchar();
-    sleep(1);
-
     return 0;
 }
 
@@ -249,15 +263,20 @@ void List_All_UserAccount(sqlite3 *db, int User_Id)
     if (!hasAccount)
     {
         printf("No accounts found for user ID: %d\n", User_Id);
+        printf("\nPress Enter to continue...");
+        while (getchar() != '\n')
+            ;
+        getchar();
     }
 
     sqlite3_finalize(stmt);
-
-    // Wait for user input before returning to the menu
     printf("\nPress Enter to continue...");
     getchar(); // Consume any remaining newline
     getchar(); // Wait for Enter
-    sleep(1);
+ // Consume any remaining newline
+    sleep(3);
+    
+
 }
 
 void Update_Phone(sqlite3 *db, char *Phone, const char *Account_number)
@@ -281,7 +300,12 @@ void Update_Phone(sqlite3 *db, char *Phone, const char *Account_number)
     if (sqlite3_changes(db) == 0)
     {
         printf("Error: Account number does not exist.\n");
-       
+        printf("\nPress Enter to continue...");
+        while (getchar() != '\n')
+            ;
+        getchar();
+        
+
         return;
     }
     else if (rc != SQLITE_DONE)
@@ -291,11 +315,13 @@ void Update_Phone(sqlite3 *db, char *Phone, const char *Account_number)
     else
     {
         printf("Phone number updated successfully!\n");
-       
+        printf("\nPress Enter to continue...");
+        while (getchar() != '\n')
+            ;
+        getchar();
     }
 
     sqlite3_finalize(stmt);
-    sleep(1);
 }
 
 void Update_Country(sqlite3 *db, char *country, const char *Account_number)
@@ -317,7 +343,10 @@ void Update_Country(sqlite3 *db, char *country, const char *Account_number)
     if (sqlite3_changes(db) == 0)
     {
         printf("Error: Account number does not exist.\n");
-        sleep(1);
+        printf("\nPress Enter to continue...");
+        while (getchar() != '\n')
+            ;
+        getchar();
         return;
     }
     if (rc != SQLITE_DONE)
@@ -327,11 +356,13 @@ void Update_Country(sqlite3 *db, char *country, const char *Account_number)
     else
     {
         printf(" Country updated successfully!\n");
-        
+        printf("\nPress Enter to continue...");
+        while (getchar() != '\n')
+            ;
+        getchar();
     }
 
     sqlite3_finalize(stmt);
-    sleep(5);
 }
 
 // Function to extract the day from a date string
@@ -390,6 +421,10 @@ void GetAll_interest(double balance, const char *creation_date, const char *Acco
     if (rate == 0.0)
     {
         printf("You will not get interests because the account is of type current.\n");
+        printf("\nPress Enter to continue...");
+        while (getchar() != '\n')
+            ;
+        getchar();
         return;
     }
 
@@ -413,11 +448,19 @@ void GetAll_interest(double balance, const char *creation_date, const char *Acco
     {
         interest = get_monthly_interest(balance, rate);
         printf("You will get $%.2f as interest on day %d of every month.\n", interest, day_num);
+        printf("\nPress Enter to continue...");
+        while (getchar() != '\n')
+            ;
+        getchar();
     }
     else
     {
         interest = get_fixed_interest(balance, rate, years);
         printf("For %s, you will get $%.2f as interest after %d years.\n", Account_Type, interest, years);
+        printf("\nPress Enter to continue...");
+        while (getchar() != '\n')
+            ;
+        getchar();
     }
 }
 
@@ -463,18 +506,14 @@ void Check_Account(sqlite3 *db, int User_id, const char *Account_number)
     else
     {
         printf("Account not found.\n");
-        sleep(2);
+        printf("\nPress Enter to continue...");
+        while (getchar() != '\n')
+            ;
+        getchar();
     }
 
     // Finalize the statement
     sqlite3_finalize(stmt);
-
-    // Wait for user input before returning
-    printf("\nPress Enter to continue...");
-    while (getchar() != '\n')
-        ;      // Clear the input buffer
-    getchar(); // Wait for Enter
-    sleep(1);
 }
 
 int Check_Datatype(const unsigned char *datatype)
@@ -514,8 +553,11 @@ void transaction_deposit(sqlite3 *db, double Amount, const char *Account_number)
     else
     {
         printf("Account not found.\n");
-        sleep(1);
         sqlite3_finalize(stmt);
+        printf("\nPress Enter to continue...");
+        while (getchar() != '\n')
+            ;
+        getchar();
         return;
     }
 
@@ -523,8 +565,11 @@ void transaction_deposit(sqlite3 *db, double Amount, const char *Account_number)
     if (Check_Datatype(account_type) != 0)
     {
         printf("Transaction not allowed on fixed account.\n");
-        sleep(1);
         sqlite3_finalize(stmt);
+        printf("\nPress Enter to continue...");
+        while (getchar() != '\n')
+            ;
+        getchar();
         return;
     }
 
@@ -544,6 +589,10 @@ void transaction_deposit(sqlite3 *db, double Amount, const char *Account_number)
     if (sqlite3_step(stmt) == SQLITE_DONE)
     {
         printf("Deposit successful. New balance: %.2lf\n", balance + Amount);
+        printf("\nPress Enter to continue...");
+        while (getchar() != '\n')
+            ;
+        getchar();
     }
     else
     {
@@ -551,12 +600,6 @@ void transaction_deposit(sqlite3 *db, double Amount, const char *Account_number)
     }
 
     sqlite3_finalize(stmt);
-
-    printf("\nPress Enter to continue...");
-    while (getchar() != '\n')
-        ;
-    getchar();
-    sleep(1);
 }
 
 void transaction_withdrawal(sqlite3 *db, double Amount, const char *Account_number)
@@ -590,14 +633,14 @@ void transaction_withdrawal(sqlite3 *db, double Amount, const char *Account_numb
             return;
         }
 
-        // Debugging print to check retrieved value
-        printf("Debug: Retrieved account type = [%s]\n", account_type);
-
         // Check if withdrawals are allowed
         if (Check_Datatype((const unsigned char *)account_type) != 0)
         {
             printf("Transaction not allowed on fixed account.\n");
-            sleep(1);
+            printf("\nPress Enter to continue...");
+            while (getchar() != '\n')
+                ;
+            getchar();
             sqlite3_finalize(stmt);
             return;
         }
@@ -605,8 +648,11 @@ void transaction_withdrawal(sqlite3 *db, double Amount, const char *Account_numb
     else
     {
         printf("Account not found.\n");
-        sleep(1);
         sqlite3_finalize(stmt);
+        printf("\nPress Enter to continue...");
+        while (getchar() != '\n')
+            ;
+        getchar();
         return;
     }
 
@@ -616,7 +662,10 @@ void transaction_withdrawal(sqlite3 *db, double Amount, const char *Account_numb
     if (balance < Amount)
     {
         printf("Insufficient balance! Your balance is: %.2lf, but you tried to withdraw: %.2lf\n", balance, Amount);
-        sleep(1);
+        printf("\nPress Enter to continue...");
+        while (getchar() != '\n')
+            ;
+        getchar();
         return;
     }
 
@@ -635,6 +684,10 @@ void transaction_withdrawal(sqlite3 *db, double Amount, const char *Account_numb
     if (sqlite3_step(stmt) == SQLITE_DONE)
     {
         printf("Withdrawal successful. New balance: %.2lf\n", balance - Amount);
+        printf("\nPress Enter to continue...");
+        while (getchar() != '\n')
+            ;
+        getchar();
     }
     else
     {
@@ -643,11 +696,7 @@ void transaction_withdrawal(sqlite3 *db, double Amount, const char *Account_numb
 
     sqlite3_finalize(stmt);
 
-    // Wait for user input before returning
-    printf("\nPress Enter to continue...");
-    while (getchar() != '\n')
-        ;
-    getchar();
+ 
 }
 
 void Remove_Account(sqlite3 *db, const char *Account_number)
@@ -671,10 +720,18 @@ void Remove_Account(sqlite3 *db, const char *Account_number)
         if (sqlite3_changes(db) > 0)
         {
             printf("Account with number %s has been successfully removed.\n", Account_number);
+            printf("\nPress Enter to continue...");
+            while (getchar() != '\n')
+                ;
+            getchar();
         }
         else
         {
             printf("No account found with number %s.\n", Account_number);
+            printf("\nPress Enter to continue...");
+            while (getchar() != '\n')
+                ;
+            getchar();
         }
     }
     else
@@ -685,11 +742,6 @@ void Remove_Account(sqlite3 *db, const char *Account_number)
     // Finalize the statement
     sqlite3_finalize(stmt);
 
-    // Wait for user input before returning
-    printf("\nPress Enter to continue...");
-    while (getchar() != '\n')
-        ;
-    getchar();
 }
 
 void transfer_ownership(sqlite3 *db, const char *Account_number, int New_owner_id)
@@ -716,10 +768,18 @@ void transfer_ownership(sqlite3 *db, const char *Account_number, int New_owner_i
         if (sqlite3_changes(db) > 0)
         {
             printf("Ownership of account %s has been successfully transferred.\n", Account_number);
+            printf("\nPress Enter to continue...");
+            while (getchar() != '\n')
+                ;
+            getchar();
         }
         else
         {
             printf("No account found with number %s.\n", Account_number);
+            printf("\nPress Enter to continue...");
+            while (getchar() != '\n')
+                ;
+            getchar();
         }
     }
     else
@@ -730,7 +790,7 @@ void transfer_ownership(sqlite3 *db, const char *Account_number, int New_owner_i
     // Finalize statement
     sqlite3_finalize(stmt);
 
-    sleep(2);
+   
 }
 
 int get_id(sqlite3 *db, const char *name)
