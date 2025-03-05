@@ -69,16 +69,23 @@ void CaseBankOption(sqlite3 *db, int choice, int User_Id)
     {
     case 1:
         clearScreen();
+       
         BankRecords(accounN, accountT, country, phone, &balance, creationD);
-        if (CreateAccount(db, User_Id, accounN, accountT, country, phone, balance, creationD) == 0)
-        {
-            printf("\n\n");
-            print_centered("New Record Added Successfully!");
-        }
-        else
-        {
-            
-            printf("\nFailed to Create Account!\n");
+        if(Validate(creationD)== 0){
+            if (CreateAccount(db, User_Id, accounN, accountT, country, phone, balance, creationD) == 0)
+            {
+                printf("\n\n");
+                print_centered("New Record Added Successfully!");
+            }
+            else
+            {
+                
+                printf("\nFailed to Create Account!\n");
+            }
+
+        }else{
+            printf("Error validating date");
+
         }
 
         break;
@@ -236,11 +243,11 @@ void Update(sqlite3 *db)
     char country[50];
 
     //  Get the account number
-    printf("\nWhat is the Account number you want to change? ");
+    printf("\nEnter account number: ");
     scanf("%19s", account_number);
 
     //  Display options
-    printf("\nWhat do you want to update?\n");
+    printf("\nSelect what to update :\n");
     printf("1. Phone Number\n");
     printf("2. Country\n");
     printf("Enter choice: ");
@@ -284,11 +291,11 @@ void Transaction(sqlite3 *db)
     double Amount;
 
     //  Get the account number
-    printf("\nWhat is the Account number:  ");
+    printf("\nAccount Number:");
     scanf("%19s", account_number);
 
     //  Display options
-    printf("\n do you want to ?\n");
+    printf("\nDo you want ?\n");
     printf("1. Witndraw\n");
     printf("2. Deposit\n");
     printf("Enter choice: ");
@@ -323,4 +330,51 @@ void Transaction(sqlite3 *db)
         }
         break; //  Exit loop after valid input
     }
+}
+
+int isLeapYear(int year) {
+    return ((year % 4 == 0 && year % 100 != 0) || (year % 400 == 0));
+}
+
+int Validate(const char *created_date) {
+    int day, month, year;
+
+    // Validate date format
+    if (sscanf(created_date, "%d/%d/%d", &day, &month, &year) != 3) {
+        printf("Error: Invalid date format. Use DD/MM/YYYY format.\n");
+        printf("\nPress Enter to continue...");
+        while (getchar() != '\n')
+            ;
+        getchar();
+        return 1;
+    }
+
+    // Validate month range
+    if (month < 1 || month > 12) {
+        printf("Error: Invalid month (%d). Must be between 1 and 12.\n", month);
+        printf("\nPress Enter to continue...");
+        while (getchar() != '\n')
+            ;
+        getchar();
+        return 1;
+    }
+
+    // Validate day range based on month
+    int days_in_month[] = {0, 31, (isLeapYear(year) ? 29 : 28), 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
+
+    if (day < 1 || day > days_in_month[month]) {
+        printf("Error: Invalid day (%d) for month %d in year %d.\n", day, month, year);
+        printf("\nPress Enter to continue...");
+        while (getchar() != '\n')
+            ;
+        getchar();
+        return 1;
+    }
+
+    printf("Date is valid: %02d/%02d/%d\n", day, month, year);
+    printf("\nPress Enter to continue...");
+    while (getchar() != '\n')
+        ;
+    getchar();
+    return 0;
 }
