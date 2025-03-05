@@ -82,7 +82,7 @@ SQLite3 development libraries
 
 **1. Clone the Repository**
 ```go
-git clone "your-repository-url"
+git clone "https://learn.zone01kisumu.ke/git/quochieng/atm-management-system.git"
 cd atm-management-system
 ```
 
