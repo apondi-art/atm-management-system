@@ -54,80 +54,91 @@ void Print_Login(char *name, char *password)
     scanf("%99s", password);
 }
 
+
+
 void CaseBankOption(sqlite3 *db, int choice, int User_Id)
 {
-    char accounN[20]; // Increased size for safety
+    char accounN[20]; 
     char NewOwner[20];
     char accountT[20];
     char country[50];
     char phone[20];
     int newid = 0;
-    double balance = 0.0; // Use double for accurate transactions
+    double balance = 0.0; 
     char creationD[20];
+
+    memset(creationD, 0, sizeof(creationD)); // Clear buffer to avoid garbage data
 
     switch (choice)
     {
     case 1:
         clearScreen();
-       
+
         BankRecords(accounN, accountT, country, phone, &balance, creationD);
-        if(Validate(creationD)== 0){
-            if (CreateAccount(db, User_Id, accounN, accountT, country, phone, balance, creationD) == 0)
-            {
-                printf("\n\n");
-                print_centered("New Record Added Successfully!");
-            }
-            else
-            {
-                
-                printf("\nFailed to Create Account!\n");
-            }
-
-        }else{
-            printf("Error validating date");
-
+        
+        if (CreateAccount(db, User_Id, accounN, accountT, country, phone, balance, creationD) == 0)
+        {
+            printf("\n\n");
+            print_centered("New Record Added Successfully!");
         }
-
+        else
+        {
+            printf("\nFailed to Create Account!\n");
+        }
         break;
 
     case 2:
-        Update(db);
+        Update(db, User_Id);
         printf("Update Account\n");
         break;
+
     case 3:
-        printf("Enter account number : ");
+        printf("Enter account number: ");
         scanf("%19s", accounN);
+        while (getchar() != '\n'); // Clear input buffer
         Check_Account(db, User_Id, accounN);
         break;
+
     case 4:
         List_All_UserAccount(db, User_Id);
         break;
+
     case 5:
-        Transaction(db);
+        Transaction(db, User_Id);
         break;
+
     case 6:
         printf("Enter Account Number: ");
         scanf("%19s", accounN);
-        Remove_Account(db, accounN);
-        printf("remove existing account\n");
+        while (getchar() != '\n'); // Clear input buffer
+        Remove_Account(db, accounN, User_Id);
+        printf("Removed existing account\n");
         break;
+
     case 7:
         printf("Enter Account number: ");
         scanf("%19s", accounN);
+        while (getchar() != '\n'); // Clear input buffer
+
         printf("Enter New Owner: ");
         scanf("%19s", NewOwner);
+        while (getchar() != '\n'); // Clear input buffer
+
         newid = get_id(db, NewOwner);
         transfer_ownership(db, accounN, newid);
-        printf(" Transfer ownership Here\n");
+        printf("Transfer ownership successful\n");
         break;
+
     case 8:
-        exit(0);
-        printf(" exit\n");
+        printf("Exiting...\n");
+        exit(0); // Ensures the program exits
         break;
+
     default:
-        printf(" Select between 1-8 only\n");
+        printf("Select between 1-8 only\n");
     }
 }
+
 
 // Function to display an error and let the user choose to retry or exit
 int handleLoginError()
@@ -173,19 +184,25 @@ void BankRecords(char *Account_Number, char *Account_Type, char *Country, char *
     printf("\n\n");
 
     printf("Enter today's date (DD/MM/YYYY): ");
-    scanf("%19s", Creation_date); 
+    scanf("%19s", Creation_date);
+      if (Validate(Creation_date) != 0) 
+        {
+            printf("Error validating date\n");
+            return; // Stop execution if the date is invalid
+        }
+
 
     printf("Enter the account number: ");
-    scanf("%19s", Account_Number);  
+    scanf("%19s", Account_Number);
 
     printf("Enter the country: ");
-    scanf("%49s", Country); // 
+    scanf("%49s", Country); //
 
     printf("Enter the phone number: ");
-    scanf("%19s", Phone); 
+    scanf("%19s", Phone);
 
     printf("Enter amount to deposit: $");
-    scanf("%lf", Balance); 
+    scanf("%lf", Balance);
 
     // Display Account Type Options
     int account_choice;
@@ -235,7 +252,7 @@ void BankRecords(char *Account_Number, char *Account_Type, char *Country, char *
     printf("\nNew Record Added Successfully!\n");
 }
 
-void Update(sqlite3 *db)
+void Update(sqlite3 *db, int userid)
 {
     char account_number[20]; //  Must be a mutable array
     int choice;
@@ -267,13 +284,13 @@ void Update(sqlite3 *db)
         case 1:
             printf("\nEnter new Phone Number: ");
             scanf("%19s", phone);
-            Update_Phone(db, phone, account_number);
+            Update_Phone(db, phone, account_number, userid);
             break;
 
         case 2:
             printf("\nEnter new Country: ");
             scanf("%49s", country);
-            Update_Country(db, country, account_number);
+            Update_Country(db, country, account_number, userid);
             break;
 
         default:
@@ -284,7 +301,7 @@ void Update(sqlite3 *db)
     }
 }
 
-void Transaction(sqlite3 *db)
+void Transaction(sqlite3 *db, int userid)
 {
     char account_number[20]; //  Must be a mutable array
     int choice;
@@ -315,13 +332,13 @@ void Transaction(sqlite3 *db)
         case 1:
             printf("\nEnter amount: ");
             scanf("%lf", &Amount);
-            transaction_withdrawal(db, Amount, account_number);
+            transaction_withdrawal(db, Amount, account_number, userid);
             break;
 
         case 2:
             printf("\nEnter amount: ");
             scanf("%lf", &Amount);
-            transaction_deposit(db, Amount, account_number);
+            transaction_deposit(db, Amount, account_number, userid);
             break;
 
         default:
@@ -332,49 +349,32 @@ void Transaction(sqlite3 *db)
     }
 }
 
-int isLeapYear(int year) {
-    return ((year % 4 == 0 && year % 100 != 0) || (year % 400 == 0));
-}
 
-int Validate(const char *created_date) {
-    int day, month, year;
+int Validate(const char *created_date)
+{
+    time_t t = time(NULL); // Get current time
+    struct tm *tm_now = localtime(&t); // Convert to local time
+    
+    char date_now[11]; // Buffer to store formatted date
+    sprintf(date_now, "%02d/%02d/%04d", 
+            tm_now->tm_mday, 
+            tm_now->tm_mon + 1, // Month is 0-based, so add 1
+            tm_now->tm_year + 1900); // Year is stored as years since 1900
 
-    // Validate date format
-    if (sscanf(created_date, "%d/%d/%d", &day, &month, &year) != 3) {
-        printf("Error: Invalid date format. Use DD/MM/YYYY format.\n");
-        printf("\nPress Enter to continue...");
-        while (getchar() != '\n')
-            ;
-        getchar();
-        return 1;
+    // Compare the given date with the current date
+    if (strcmp(date_now, created_date) == 0)
+    {
+        printf("Date is valid: %s\n", date_now);
+    }
+    else
+    {
+        printf("Date is invalid! Expected: %s, but got: %s\n", date_now, created_date);
     }
 
-    // Validate month range
-    if (month < 1 || month > 12) {
-        printf("Error: Invalid month (%d). Must be between 1 and 12.\n", month);
-        printf("\nPress Enter to continue...");
-        while (getchar() != '\n')
-            ;
-        getchar();
-        return 1;
-    }
-
-    // Validate day range based on month
-    int days_in_month[] = {0, 31, (isLeapYear(year) ? 29 : 28), 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
-
-    if (day < 1 || day > days_in_month[month]) {
-        printf("Error: Invalid day (%d) for month %d in year %d.\n", day, month, year);
-        printf("\nPress Enter to continue...");
-        while (getchar() != '\n')
-            ;
-        getchar();
-        return 1;
-    }
-
-    printf("Date is valid: %02d/%02d/%d\n", day, month, year);
+    // Pause before exiting
     printf("\nPress Enter to continue...");
-    while (getchar() != '\n')
-        ;
-    getchar();
-    return 0;
+    while (getchar() != '\n'); // Clear input buffer
+    getchar(); // Wait for Enter key
+
+    return (strcmp(date_now, created_date) == 0) ? 0 : 1; // Return 0 if valid, 1 if invalid
 }

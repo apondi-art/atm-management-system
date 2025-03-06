@@ -13,6 +13,7 @@ int main()
 {
     // Open database first
     sqlite3 *db = OpenDatabase("atm.db");
+    
     if (db == NULL)
     {
         fprintf(stderr, "Failed to open database\n");

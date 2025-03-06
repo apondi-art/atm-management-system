@@ -210,7 +210,6 @@ int CreateAccount(sqlite3 *db, int user_ID, const char *Account_Number, const ch
         sqlite3_finalize(stmt);
         return -1;
     }
-    clearScreen();
     printf("Account created successfully");
     sqlite3_finalize(stmt);
     printf("\nPress Enter to continue...");
@@ -279,9 +278,9 @@ void List_All_UserAccount(sqlite3 *db, int User_Id)
 
 }
 
-void Update_Phone(sqlite3 *db, char *Phone, const char *Account_number)
+void Update_Phone(sqlite3 *db, char *Phone, const char *Account_number,int userid)
 {
-    const char *sql = "UPDATE accounts SET phone = ? WHERE account_number = ?;";
+    const char *sql = "UPDATE accounts SET phone = ? WHERE account_number = ? AND user_id = ?;";
     sqlite3_stmt *stmt;
 
     int rc = sqlite3_prepare_v2(db, sql, -1, &stmt, 0);
@@ -293,6 +292,7 @@ void Update_Phone(sqlite3 *db, char *Phone, const char *Account_number)
 
     sqlite3_bind_text(stmt, 1, Phone, -1, SQLITE_STATIC);
     sqlite3_bind_text(stmt, 2, Account_number, -1, SQLITE_STATIC);
+    sqlite3_bind_int(stmt,3, userid);
 
     rc = sqlite3_step(stmt);
 
@@ -324,9 +324,9 @@ void Update_Phone(sqlite3 *db, char *Phone, const char *Account_number)
     sqlite3_finalize(stmt);
 }
 
-void Update_Country(sqlite3 *db, char *country, const char *Account_number)
+void Update_Country(sqlite3 *db, char *country, const char *Account_number,int userid)
 {
-    const char *sql = "UPDATE accounts SET country = ? WHERE account_number = ?;";
+    const char *sql = "UPDATE accounts SET country = ? WHERE account_number = ? AND user_id = ?;";
     sqlite3_stmt *stmt;
 
     int rc = sqlite3_prepare_v2(db, sql, -1, &stmt, 0);
@@ -338,6 +338,7 @@ void Update_Country(sqlite3 *db, char *country, const char *Account_number)
 
     sqlite3_bind_text(stmt, 1, country, -1, SQLITE_STATIC);
     sqlite3_bind_text(stmt, 2, Account_number, -1, SQLITE_STATIC);
+    sqlite3_bind_int(stmt,3,userid);
 
     rc = sqlite3_step(stmt);
     if (sqlite3_changes(db) == 0)
@@ -529,9 +530,9 @@ int Check_Datatype(const unsigned char *datatype)
     return (strcmp((const char *)datatype, "Savings") == 0 || strcmp((const char *)datatype, "Current") == 0) ? 0 : 1;
 }
 
-void transaction_deposit(sqlite3 *db, double Amount, const char *Account_number)
+void transaction_deposit(sqlite3 *db, double Amount, const char *Account_number, int userid)
 {
-    const char *sql = "SELECT balance, account_type FROM accounts WHERE account_number = ?;";
+    const char *sql = "SELECT balance, account_type FROM accounts WHERE account_number = ?AND user_id = ?;";
     sqlite3_stmt *stmt;
 
     if (sqlite3_prepare_v2(db, sql, -1, &stmt, 0) != SQLITE_OK)
@@ -541,6 +542,7 @@ void transaction_deposit(sqlite3 *db, double Amount, const char *Account_number)
     }
 
     sqlite3_bind_text(stmt, 1, Account_number, -1, SQLITE_STATIC);
+    sqlite3_bind_int(stmt,2,userid);
 
     double balance = 0.0;
     const unsigned char *account_type = NULL;
@@ -549,6 +551,7 @@ void transaction_deposit(sqlite3 *db, double Amount, const char *Account_number)
     {
         balance = sqlite3_column_double(stmt, 0);
         account_type = sqlite3_column_text(stmt, 1);
+
     }
     else
     {
@@ -602,9 +605,9 @@ void transaction_deposit(sqlite3 *db, double Amount, const char *Account_number)
     sqlite3_finalize(stmt);
 }
 
-void transaction_withdrawal(sqlite3 *db, double Amount, const char *Account_number)
+void transaction_withdrawal(sqlite3 *db, double Amount, const char *Account_number,int userid)
 {
-    const char *sql = "SELECT balance, account_type FROM accounts WHERE account_number = ?;";
+    const char *sql = "SELECT balance, account_type FROM accounts WHERE account_number = ?AND user_id = ?;";
     sqlite3_stmt *stmt;
     int rc = sqlite3_prepare_v2(db, sql, -1, &stmt, 0);
 
@@ -615,6 +618,7 @@ void transaction_withdrawal(sqlite3 *db, double Amount, const char *Account_numb
     }
 
     sqlite3_bind_text(stmt, 1, Account_number, -1, SQLITE_STATIC);
+    sqlite3_bind_int(stmt, 2, userid);
 
     double balance = 0.0;
     const char *account_type = NULL; // Use char * instead of unsigned char *
@@ -699,9 +703,9 @@ void transaction_withdrawal(sqlite3 *db, double Amount, const char *Account_numb
  
 }
 
-void Remove_Account(sqlite3 *db, const char *Account_number)
+void Remove_Account(sqlite3 *db, const char *Account_number, int userid)
 {
-    const char *sql = "DELETE FROM accounts WHERE account_number = ?;";
+    const char *sql = "DELETE FROM accounts WHERE account_number = ? AND user_id = ?;";
     sqlite3_stmt *stmt;
 
     // Prepare the DELETE statement
@@ -713,6 +717,8 @@ void Remove_Account(sqlite3 *db, const char *Account_number)
 
     // Bind the account number to the statement
     sqlite3_bind_text(stmt, 1, Account_number, -1, SQLITE_STATIC);
+    sqlite3_bind_int(stmt, 2,userid);
+
 
     // Execute the statement
     if (sqlite3_step(stmt) == SQLITE_DONE)
